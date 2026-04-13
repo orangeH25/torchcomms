@@ -18,7 +18,6 @@
 #include "comms/torchcomms/TorchComm.hpp"
 #include "comms/torchcomms/TorchCommBackend.hpp"
 #include "comms/torchcomms/TorchCommBatch.hpp"
-#include "comms/torchcomms/TorchCommTracing.hpp"
 #include "comms/torchcomms/device/npu/NpuApi.hpp"
 #include "comms/torchcomms/hccl/HcclApi.hpp"
 #include "comms/torchcomms/hccl/TorchWorkHCCL.hpp"
@@ -308,7 +307,6 @@ class TorchCommHCCL : public TorchCommBackend,
   std::condition_variable timeout_cv_;
   std::mutex timeout_mutex_;
 
-  std::shared_ptr<TorchCommTracing> tracing_;
   bool high_priority_stream_{false};
   std::string name_;
 };

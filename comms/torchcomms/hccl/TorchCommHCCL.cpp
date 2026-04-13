@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <string>
 #include "comms/torchcomms/TorchCommFactory.hpp"
-#include "comms/torchcomms/TorchCommLogging.hpp"
+#include "comms/torchcomms/utils/Logging.hpp"
+#include "comms/torchcomms/utils/TracingGuard.hpp"
+#include "comms/torchcomms/utils/Utils.hpp"
 #include "comms/torchcomms/hccl/TorchCommHCCLBootstrap.hpp"
 
 namespace torch::comms {
@@ -139,7 +141,7 @@ void TorchCommHCCL::init(
   npuEvent_t temp_event;
   NPU_CHECK(
       npu_api_,
-      npu_api_->eventCreateWithFlags(temp_event, /*flags=*/0),
+      npu_api_->eventCreate(temp_event),
       "Failed to create dependency event on device " +
           std::to_string(device_.index()));
   dependency_event_ = std::move(temp_event);
@@ -181,8 +183,7 @@ void TorchCommHCCL::init(
   }
   comm_size_ = static_cast<int>(comm_size_u32);
 
-  tracing_ = std::make_shared<TorchCommTracing>(name, comm_size_, rank_);
-  tracing_->recordEvent("init");
+  TracingGuard tracingGuard(name_, comm_size_, "init", rank_);
 
   // Start timeout watchdog thread
   timeout_thread_ = std::thread(&TorchCommHCCL::timeoutWatchdog, this);
@@ -381,7 +382,8 @@ c10::intrusive_ptr<TorchWork> TorchCommHCCL::all_reduce(
       "Failed to set NPU device to " + std::to_string(device_.index()));
   ensureTensorContiguous(tensor);
 
-  tracing_->recordEventWithInputOutput("all_reduce", rank_, {tensor}, {tensor});
+    TracingGuard tracingGuard(
+      name_, comm_size_, "all_reduce", rank_, tensor, tensor);
 
   npuStream_t stream = getOperationStream(async_op);
   auto work = createWork(

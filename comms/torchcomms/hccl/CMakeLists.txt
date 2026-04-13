@@ -79,10 +79,29 @@ target_link_libraries(torchcomms_comms_hccl PRIVATE
     ${TORCH_NPU_SHARED_LIB}
 )
 
+if(USE_SYSTEM_LIBS)
+    target_link_libraries(torchcomms_comms_hccl PRIVATE
+        "-lglog"
+        "-lgflags"
+        "-lfmt"
+    )
+else()
+    target_include_directories(torchcomms_comms_hccl PRIVATE
+        ${ROOT}/third-party/fmt/include
+    )
+    target_link_libraries(torchcomms_comms_hccl PRIVATE
+        "-l:libglog.a"
+        "-l:libgflags.a"
+        "-l:libfmt.a"
+    )
+endif()
+
 set_property(TARGET torchcomms_comms_hccl APPEND PROPERTY BUILD_RPATH
+    "${CONDA_LIB}"
     "${TORCH_NPU_LIB_DIR}"
 )
 set_property(TARGET torchcomms_comms_hccl APPEND PROPERTY INSTALL_RPATH
+    "${CONDA_LIB}"
     "${TORCH_NPU_LIB_DIR}"
 )
 

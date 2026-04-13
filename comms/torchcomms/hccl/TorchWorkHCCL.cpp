@@ -1,5 +1,6 @@
 #include "comms/torchcomms/hccl/TorchWorkHCCL.hpp"
-#include "comms/torchcomms/TorchCommLogging.hpp"
+#include "comms/torchcomms/utils/Logging.hpp"
+#include "comms/torchcomms/utils/TracingGuard.hpp"
 #include "comms/torchcomms/hccl/TorchCommHCCL.hpp"
 
 namespace torch::comms {
@@ -8,14 +9,12 @@ TorchWorkHCCL::TorchWorkHCCL(
     std::shared_ptr<TorchCommHCCL> comm,
     npuStream_t stream,
     std::chrono::milliseconds timeout_ms,
-    const std::vector<at::Tensor>& inputTensors,
-    std::shared_ptr<TorchCommTracing> tracing)
+    const std::vector<at::Tensor>& inputTensors)
     : inputTensors_(inputTensors),
       comm_(std::move(comm)),
       stream_(stream),
       timeout_ms_(timeout_ms),
-      state_(WorkStatus::NOT_STARTED),
-      tracing_(std::move(tracing)) {
+      state_(WorkStatus::NOT_STARTED) {
   // If not in graph capture mode, create the events for start and end
   // recording
   start_event_ = comm_->getEvent();
@@ -116,7 +115,11 @@ void TorchWorkHCCL::wait() {
     return;
   }
 
-  tracing_->recordEvent("wait");
+  TracingGuard tracingGuard(
+      std::string(comm_->getCommName()),
+      comm_->getSize(),
+      "wait",
+      comm_->getRank());
 
   // Get the current stream using the device from the comm object
   npuStream_t current_stream =

@@ -2,7 +2,7 @@
 #include <hccl/hccl_types.h>
 #include <stdexcept>
 #include <string>
-#include "comms/torchcomms/TorchCommLogging.hpp"
+#include "comms/torchcomms/utils/Logging.hpp"
 #include "comms/torchcomms/hccl/TorchCommHCCL.hpp"
 
 namespace torch::comms {
@@ -244,7 +244,7 @@ c10::intrusive_ptr<TorchWorkHCCL> TorchCommHCCL::createWork(
     const std::vector<at::Tensor>& inputTensors) {
   // Only create the work object without enqueuing it
   auto work = c10::make_intrusive<TorchWorkHCCL>(
-      shared_from_this(), stream, timeout, inputTensors, tracing_);
+      shared_from_this(), stream, timeout, inputTensors);
   return work;
 }
 
@@ -299,7 +299,7 @@ npuEvent_t TorchCommHCCL::getEvent() {
   npuEvent_t event;
   NPU_CHECK(
       npu_api_,
-      npu_api_->eventCreateWithFlags(event, /*flags=*/0),
+      npu_api_->eventCreate(event),
       "Failed to create event");
   return event;
 }

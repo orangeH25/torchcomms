@@ -1,5 +1,5 @@
 #include "comms/torchcomms/hccl/HcclApi.hpp"
-#include "comms/torchcomms/TorchCommLogging.hpp"
+#include "comms/torchcomms/utils/Logging.hpp"
 
 namespace torch::comms {
 

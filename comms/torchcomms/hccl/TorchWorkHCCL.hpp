@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include <ATen/ATen.h>
-#include "comms/torchcomms/TorchCommTracing.hpp"
 #include "comms/torchcomms/TorchWork.hpp"
 #include "comms/torchcomms/device/npu/NpuApi.hpp"
 
@@ -33,8 +32,7 @@ class TorchWorkHCCL : public TorchWork {
       std::shared_ptr<TorchCommHCCL> comm,
       npuStream_t stream,
       std::chrono::milliseconds timeout_ms,
-      const std::vector<at::Tensor>& inputTensors,
-      std::shared_ptr<TorchCommTracing> tracing);
+      const std::vector<at::Tensor>& inputTensors);
   ~TorchWorkHCCL() override;
 
   // Delete copy and move operations
@@ -72,7 +70,6 @@ class TorchWorkHCCL : public TorchWork {
   std::atomic<WorkStatus> state_;
 
   std::optional<std::chrono::steady_clock::time_point> start_completed_time_;
-  std::shared_ptr<TorchCommTracing> tracing_;
 };
 
 class TorchWorkHCCLQueue {

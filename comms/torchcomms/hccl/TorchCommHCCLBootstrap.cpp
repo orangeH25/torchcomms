@@ -1,12 +1,11 @@
 #include "comms/torchcomms/hccl/TorchCommHCCLBootstrap.hpp"
-#include <torch/csrc/distributed/c10d/TCPStore.hpp> // @manual
 #include <chrono>
 #include <cstring>
 #include <exception>
 #include <thread>
-#include "comms/torchcomms/StoreManager.hpp"
-#include "comms/torchcomms/TorchCommLogging.hpp"
-#include "comms/torchcomms/TorchCommUtils.hpp"
+#include "comms/torchcomms/utils/StoreManager.hpp"
+#include "comms/torchcomms/utils/Logging.hpp"
+#include "comms/torchcomms/utils/Utils.hpp"
 #include "comms/torchcomms/hccl/TorchCommHCCL.hpp"
 
 namespace torch::comms {
@@ -138,8 +137,7 @@ HcclRootInfo TorchCommHCCLBootstrap::exchangeUniqueIdStore() {
 
 HcclRootInfo TorchCommHCCLBootstrap::exchangeUniqueIdTCPStore(
     std::string_view name) {
-  store_ =
-      StoreManager::get().getStore(TorchCommHCCL::kBackendName, name, timeout_);
+  store_ = createPrefixStore(std::string(name), timeout_);
   created_internal_store_ = true;
 
   return exchangeUniqueIdStore();
